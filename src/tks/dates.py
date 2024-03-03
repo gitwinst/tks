@@ -214,57 +214,12 @@ class DateEntry(ttk.Frame, object):
         if new_date != self._variable.get():
             self._internal_value_change = True
             self._variable.set(value)
-            # self._update_day_values(value.year, value.month, value.day)
             if isinstance(value, datetime.datetime):
                 self._time = value.time()
             else:
                 self._time = None
             self._internal_value_change = False
-        
-    #     changed = False
 
-    #     # Ensure comparison is integer to integer for year
-    #     try:
-    #         year_var_value = int(self._year_var.get())
-    #     except ValueError:
-    #         year_var_value = None # Handle empty or invalid current year value
-
-    #     # Proceed with update only if there's an actual change
-    #     if year_var_value is None or value.year != year_var_value:
-    #         self._year_var.set(str(value.year))
-    #         changed = True
-
-    #    # Apply similar logic for month and day, ensuring type consistency
-    #     try:
-    #         month_var_value = int(self._month_var.get())
-    #     except ValueError:
-    #         month_var_value = None
-
-    #     if month_var_value is None or value.month != month_var_value:
-    #         self._month_var.set(value.month)
-    #         changed = True
-
-    #     try:
-    #         day_var_value = int(self._day_var.get())
-    #     except ValueError:
-    #         day_var_value = None
-
-    #     if day_var_value is None or value.day != day_var_value:
-    #         self._day_var.set(value.day)
-    #         changed = True
-
-    #     if changed:
-    #         self._update_day_values(value.year, value.month, value.day)
-    #         # Only set the variable if there's a change to prevent echo
-    #         self._internal_value_change = True
-    #         self._variable.set(value)
-    #     else:
-    #         self._internal_value_change = False
-
-    #     if isinstance(value, datetime.datetime):
-    #         self._time = value.time()
-    #     else:
-    #         self._time = None
 
     def _update_day_values(self, year, month, day):
         """Update the day combo box with the correct values
