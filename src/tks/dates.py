@@ -88,11 +88,13 @@ class DateEntry(ttk.Frame, object):
     :type fonts:     :class:`~tks.DefaultFonts`
     """
 
-    def __init__(self, master,
+    def __init__(self, master, application_window,
                  variable=None,
                  locale='en',
                  fonts=None):
         super(DateEntry, self).__init__(master)
+
+        self.application_window = application_window
 
         if variable:
             if not isinstance(variable, DateVar):
@@ -175,6 +177,7 @@ class DateEntry(ttk.Frame, object):
 
         btn = ttk.Button(self, text=_('Select...'), command=self._select_date)
         btn.grid(row=0, column=5, sticky=tk.E, padx=(6, 0))
+        self.btn = btn
 
         for idx in range(5):
             self.columnconfigure(idx, weight=0)
@@ -254,12 +257,10 @@ class DateEntry(ttk.Frame, object):
 
                 self._internal_value_change = True
                 self.value = new_date
+            self.enable_select_date_button()
         except ValueError:
-            # This block catches conversion errors, which can happen if the fields are incomplete.
-
             print("_year_changed: ValueError encountered")  # Debug print
-
-            pass
+            self.disable_select_date_button()
 
     def _month_changed(self, *args):
         try:
@@ -276,11 +277,10 @@ class DateEntry(ttk.Frame, object):
 
                 self._internal_value_change = True
                 self.value = new_date
+            self.enable_select_date_button()
         except ValueError:
-
             print("_month_changed: ValueError encountered")  # Debug print
-
-            pass
+            self.disable_select_date_button()
 
     def _day_changed(self, *args):
         try:
@@ -297,11 +297,10 @@ class DateEntry(ttk.Frame, object):
 
                 self._internal_value_change = True
                 self.value = new_date
+            self.enable_select_date_button()
         except ValueError:
-
             print("_day_changed: ValueError encountered")  # Debug print
-            
-            pass
+            self.disable_select_date_button()
 
     def _value_changed(self, *args):
         if not self._internal_value_change:
@@ -322,7 +321,7 @@ class DateEntry(ttk.Frame, object):
                           month=int(self._month_var.get()),
                           day=int(self._day_var.get()))
 
-        dlg = DateDialog(self,
+        dlg = DateDialog(self, self.application_window,
                          _('Select a Date...'),
                          start_date=d,
                          locale=self._locale,
@@ -330,21 +329,7 @@ class DateEntry(ttk.Frame, object):
         self.wait_window(dlg)
         new_date = dlg.date
         if new_date != None:
-            self.value = new_date # W3 -- investigate!
-    
-    # def _dateentry_focusout_update(self, event=None):
-    #     """Update the date when any of the date entries lose focus"""
-    #     try:
-    #         new_year = int(self._year_var.get())
-    #         new_month = int(self._month_var.get())
-    #         new_day = int(self._day_var.get())
-
-    #         new_date = datetime.date(year=new_year, month=new_month, day=new_day)
-
-    #         if new_date != self._variable.get():
-    #             self.value = new_date
-    #     except ValueError:
-    #         pass
+            self.value = new_date
 
     def _update_value_from_entry_widget(self, event=None):
         try:
@@ -372,6 +357,12 @@ class DateEntry(ttk.Frame, object):
                 child.configure(state='normal')
             except tk.TclError:
                 pass
+    
+    def disable_select_date_button(self):
+        self.btn.configure(state='disabled')
+    
+    def enable_select_date_button(self):
+        self.btn.configure(state='normal')
 
 
 class DateDialog(tks.dialog.Dialog):
@@ -398,13 +389,15 @@ class DateDialog(tks.dialog.Dialog):
     :type colors:      :class:`~tks.DefaultColors`
     """
 
-    def __init__(self, master, title,
+    def __init__(self, master, application_window, title,
                  start_date=None,
                  locale='en',
                  target_type=TargetShape.Circle,
                  fonts=None,
                  colors=None):
         super(DateDialog, self).__init__(master, title)
+
+        self.application_window = application_window
 
         self.date = None
 
@@ -423,13 +416,31 @@ class DateDialog(tks.dialog.Dialog):
                                      target_type=target_type,
                                      fonts=fonts,
                                      colors=colors)
-        self.deiconify()
 
         selector_size = self.selector.size
         # gi = tks.parse_geometry(self.winfo_geometry())
         # self.minsize(gi[0], gi[1])
         self.minsize(self.winfo_reqwidth(), self.winfo_reqheight())
         self.resizable(width=False, height=False)
+
+        self.position_dialog()
+
+        self.deiconify()
+
+    def position_dialog(self):
+        """Position the dialog in the center of the main_window."""
+        self.update_idletasks()  # Make sure we have the latest info
+        application_window_width = self.application_window.winfo_width()
+        application_window_height = self.application_window.winfo_height()
+        application_window_x = self.application_window.winfo_x()
+        application_window_y = self.application_window.winfo_y()
+        dialog_width = self.winfo_reqwidth()
+        dialog_height = self.winfo_reqheight()
+
+        new_x = application_window_x + (application_window_width - dialog_width) // 2
+        new_y = application_window_y + (application_window_height - dialog_height) // 2
+
+        self.geometry(f"+{new_x}+{new_y}")
 
     def ok(self):
         """Called when the OK button is pressed"""
