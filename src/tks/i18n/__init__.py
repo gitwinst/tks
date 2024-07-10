@@ -22,6 +22,8 @@ DEFAULT_LANGUAGES = os.environ.get('LANGUAGE', '').split(':')
 if 'en_US' not in DEFAULT_LANGUAGES:
     DEFAULT_LANGUAGES += ['en_US']
 
+languages = []  # Initialize languages as an empty list
+
 lc, encoding = locale.getdefaultlocale()
 if lc:
     languages = [lc]
